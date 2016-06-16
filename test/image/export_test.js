@@ -1,11 +1,13 @@
 var fs = require('fs');
 var path = require('path');
 
+var constants = require('../../tasks/util/constants');
 var getRequestOpts = require('./assets/get_image_request_options');
+
+// packages inside the image server docker
 var request = require('request');
 var test = require('tape');
 
-var constants = require('../../tasks/util/constants');
 
 var userFileName = process.argv[2];
 
@@ -82,10 +84,11 @@ function testExport(fileName, format, t) {
         figure: figure,
         format: format,
         scale: 1
-    var imageFileName = fileName.split('.')[0] + '.' + format;
-    var savedImagePath = path.join(constants.pathToTestImages, imageFileName);
-    var savedImageStream = fs.createWriteStream(savedImagePath);
+    });
 
+    var imageFileName = fileName.split('.')[0] + '.' + format,
+        savedImagePath = path.join(constants.pathToTestImages, imageFileName),
+        savedImageStream = fs.createWriteStream(savedImagePath);
 
     function checkExport(err) {
         if(err) throw err;

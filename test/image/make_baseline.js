@@ -14,9 +14,15 @@ var bar;
 
 if(!userFileName) {
     fs.readdir(constants.pathToTestImageMocks, function(err, files) {
-        console.log('#######  ' + files.length + ' total baseline images to build  #######');
-        bar = new ProgressBar('processing [:bar] [:current / :total]', { total: files.length, width: 30 });
         if(err) return console.log(err);
+
+        console.log('###' + files.length + ' total baseline images to build');
+
+        bar = new ProgressBar('processing [:bar] [:current / :total]', {
+            total: files.length,
+            width: 30
+        });
+
         files.forEach(createBaselineImage);
     });
 }
@@ -35,9 +41,9 @@ function createBaselineImage(fileName) {
         scale: 1
     });
 
-    var imageFileName = fileName.split('.')[0] + '.png';
-    var savedImagePath = path.join(constants.pathToTestImageBaselines, imageFileName);
-    var savedImageStream = fs.createWriteStream(savedImagePath);
+    var imageFileName = fileName.split('.')[0] + '.png',
+        savedImagePath = path.join(constants.pathToTestImageBaselines, imageFileName),
+        savedImageStream = fs.createWriteStream(savedImagePath);
 
     function checkFormat(err, res) {
         if(err) console.log(err);

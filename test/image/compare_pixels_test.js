@@ -93,10 +93,10 @@ function testMock(fileName, t) {
         scale: 1
     });
 
-    var imageFileName = fileName.split('.')[0] + '.png';
-    var savedImagePath = path.join(constants.pathToTestImages, imageFileName);
-    var diffPath = path.join(constants.pathToTestImagesDiff, 'diff-' + imageFileName);
-    var savedImageStream = fs.createWriteStream(savedImagePath);
+    var imageFileName = fileName.split('.')[0] + '.png',
+        savedImagePath = path.join(constants.pathToTestImages, imageFileName),
+        diffPath = path.join(constants.pathToTestImagesDiff, 'diff-' + imageFileName),
+        savedImageStream = fs.createWriteStream(savedImagePath);
 
     function checkImage() {
         running--;
