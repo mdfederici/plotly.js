@@ -11,7 +11,6 @@ var BATCH_SIZE = 5;      // size of each test 'batch'
 var running = 0;         // number of tests currently running
 
 
-
 // make artifact folders
 if(!fs.existsSync(constants.pathToTestImagesDiff)) {
     fs.mkdirSync(constants.pathToTestImagesDiff);
@@ -23,7 +22,8 @@ if(!fs.existsSync(constants.pathToTestImages)) {
 var userFileName = process.argv[2];
 
 // run the test(s)
-if(!userFileName) runAll();
+// if(!userFileName) runAll();
+if(!userFileName) runAllInQueue();
 else runSingle(userFileName);
 
 function runAll() {
@@ -32,7 +32,9 @@ function runAll() {
         var fileNames = fs.readdirSync(constants.pathToTestImageMocks);
 
         // eliminate pollutants (e.g .DS_Store) that can accumulate in the mock directory
-        var allMocks = fileNames.filter(function(name) {return name.slice(-5) === '.json';});
+        var allMocks = fileNames.filter(function(name) {
+            return name.slice(-5) === '.json';
+        });
 
         /* Test cases:
          *
@@ -61,6 +63,33 @@ function runAll() {
             testMock(mocks[i], t);
         }
 
+    });
+}
+
+function runAllInQueue() {
+    test('testing mocks in queue', function(t) {
+        var allMocks = fs.readdirSync(constants.pathToTestImageMocks);
+
+        var mocks = allMocks.filter(function(mock) {
+            return mock.indexOf('mapbox_') !== -1;
+        });
+
+        t.plan(mocks.length);
+
+        var index = 0;
+
+        function run(fileName) {
+            comparePixels(fileName, function(isEqual, imageFileName) {
+                t.ok(isEqual, imageFileName + ' should be pixel perfect');
+
+                index++
+                if(index < mocks.length) {
+                    setTimeout(function() { run(mocks[index]); }, 100);
+                }
+            });
+        }
+
+        run(mocks[index]);
     });
 }
 
