@@ -1,11 +1,11 @@
 var fs = require('fs');
 var path = require('path');
 
+var getRequestOpts = require('./assets/get_image_request_options');
 var request = require('request');
 var test = require('tape');
 
 var constants = require('../../tasks/util/constants');
-var getOptions = require('../../tasks/util/get_image_request_options');
 
 var userFileName = process.argv[2];
 
@@ -78,17 +78,14 @@ function testExports(fileName, t) {
 
 function testExport(fileName, format, t) {
     var figure = require(path.join(constants.pathToTestImageMocks, fileName));
-    var bodyMock = {
+    var opts = getRequestOpts({
         figure: figure,
         format: format,
         scale: 1
-    };
-
     var imageFileName = fileName.split('.')[0] + '.' + format;
     var savedImagePath = path.join(constants.pathToTestImages, imageFileName);
     var savedImageStream = fs.createWriteStream(savedImagePath);
 
-    var options = getOptions(bodyMock, 'http://localhost:9010/');
 
     function checkExport(err) {
         if(err) throw err;
@@ -100,7 +97,7 @@ function testExport(fileName, format, t) {
         });
     }
 
-    request(options)
+    request(opts)
         .pipe(savedImageStream)
         .on('close', checkExport);
 }

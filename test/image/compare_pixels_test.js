@@ -2,7 +2,7 @@ var fs = require('fs');
 var path = require('path');
 
 var constants = require('../../tasks/util/constants');
-var getOptions = require('../../tasks/util/get_image_request_options');
+var getRequestOpts = require('./assets/get_image_request_options');
 
 // packages inside the image server docker
 var request = require('request');
@@ -87,17 +87,16 @@ function testMock(fileName, t) {
     running++;
 
     var figure = require(path.join(constants.pathToTestImageMocks, fileName));
-    var bodyMock = {
+    var opts = getRequestOpts({
         figure: figure,
         format: 'png',
         scale: 1
-    };
+    });
 
     var imageFileName = fileName.split('.')[0] + '.png';
     var savedImagePath = path.join(constants.pathToTestImages, imageFileName);
     var diffPath = path.join(constants.pathToTestImagesDiff, 'diff-' + imageFileName);
     var savedImageStream = fs.createWriteStream(savedImagePath);
-    var options = getOptions(bodyMock, 'http://localhost:9010/');
 
     function checkImage() {
         running--;
@@ -144,7 +143,7 @@ function testMock(fileName, t) {
         t.ok(isEqual, imageFileName + ' should be pixel perfect');
     }
 
-    request(options)
+    request(opts)
         .pipe(savedImageStream)
         .on('close', checkImage);
 }
