@@ -30,6 +30,9 @@ exports.valObjects = {
         coerceFunction: function(v, propOut, dflt) {
             if(Array.isArray(v)) propOut.set(v);
             else if(dflt !== undefined) propOut.set(dflt);
+        },
+        isValidFunction: function(v) {
+            return Array.isArray(v);
         }
     },
     enumerated: {
@@ -43,6 +46,10 @@ exports.valObjects = {
             if(opts.coerceNumber) v = +v;
             if(opts.values.indexOf(v) === -1) propOut.set(dflt);
             else propOut.set(v);
+        },
+        isValidFunction: function(v, opts) {
+            if(opts.coerceNumber) v = +v;
+            return (opts.values.indexOf(v) !== -1);
         }
     },
     'boolean': {
@@ -52,6 +59,9 @@ exports.valObjects = {
         coerceFunction: function(v, propOut, dflt) {
             if(v === true || v === false) propOut.set(v);
             else propOut.set(dflt);
+        },
+        isValidFunction: function(v) {
+            return typeof v === 'boolean';
         }
     },
     number: {
@@ -70,6 +80,13 @@ exports.valObjects = {
                 propOut.set(dflt);
             }
             else propOut.set(+v);
+        },
+        isValidFunction: function(v, opts) {
+            return (
+                isNumeric(v) &&
+                (v > opts.min || -Infinity) &&
+                (v < opts.max || Infinity)
+            );
         }
     },
     integer: {
@@ -87,6 +104,14 @@ exports.valObjects = {
                 propOut.set(dflt);
             }
             else propOut.set(+v);
+        },
+        isValidFunction: function(v, opts) {
+            return (
+                (v % 1 === 0) &&
+                isNumeric(v) &&
+                (v > opts.min || -Infinity) ||
+                (v < opts.max || Infinity)
+            );
         }
     },
     string: {
@@ -109,6 +134,11 @@ exports.valObjects = {
                 propOut.set(dflt);
             }
             else propOut.set(s);
+        },
+        isValidFunction: function(v, opts) {
+            if(opts.strict === true && typeof v !== 'string') return false;
+            if(v === undefined || (opts.noBlank === true && !String(v))) return false;
+            return true;
         }
     },
     color: {
@@ -127,6 +157,9 @@ exports.valObjects = {
         coerceFunction: function(v, propOut, dflt) {
             if(tinycolor(v).isValid()) propOut.set(v);
             else propOut.set(dflt);
+        },
+        isValidFunction: function(v) {
+            return tinycolor(v).isValid();
         }
     },
     colorscale: {
@@ -142,6 +175,9 @@ exports.valObjects = {
         otherOpts: ['dflt'],
         coerceFunction: function(v, propOut, dflt) {
             propOut.set(getColorscale(v, dflt));
+        },
+        isValidFunction: function() {
+            return true; // TODO be more strict
         }
     },
     angle: {
@@ -157,6 +193,9 @@ exports.valObjects = {
                 if(Math.abs(v) > 180) v -= Math.round(v / 360) * 360;
                 propOut.set(+v);
             }
+        },
+        isValidFunction: function() {
+            return true;
         }
     },
     subplotid: {
@@ -175,6 +214,9 @@ exports.valObjects = {
                 return;
             }
             propOut.set(dflt);
+        },
+        isValidFunction: function() {
+            return true;
         }
     },
     flaglist: {
@@ -207,6 +249,9 @@ exports.valObjects = {
             }
             if(!vParts.length) propOut.set(dflt);
             else propOut.set(vParts.join('+'));
+        },
+        isValidFunction: function() {
+            return true; // TODO
         }
     },
     any: {
@@ -216,6 +261,9 @@ exports.valObjects = {
         coerceFunction: function(v, propOut, dflt) {
             if(v === undefined) propOut.set(dflt);
             else propOut.set(v);
+        },
+        isValidFunction: function(v) {
+            return (v !== undefined);
         }
     },
     info_array: {
@@ -239,6 +287,9 @@ exports.valObjects = {
             }
 
             propOut.set(vOut);
+        },
+        isValidFunction: function() {
+            return true;  // TODO
         }
     }
 };
@@ -306,6 +357,18 @@ exports.coerceFont = function(coerce, attr, dfltObj) {
     out.family = coerce(attr + '.family', dfltObj.family);
     out.size = coerce(attr + '.size', dfltObj.size);
     out.color = coerce(attr + '.color', dfltObj.color);
+
+    return out;
+};
+
+exports.isValid = function(containerIn, attributes, attribute) {
+    var opts = nestedProperty(attributes, attribute).get(),
+        propIn = nestedProperty(containerIn, attribute),
+        v = propIn.get();
+
+    if(opts.arrayOk && Array.isArray(v)) return true;
+
+    var out = exports.valObjects[opts.valType].isValidFunction(v, opts);
 
     return out;
 };
